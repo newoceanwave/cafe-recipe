@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>메가커피 레시피북</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Pretendard', sans-serif;
+      background: #F7F7F5;
+      min-height: 100vh;
+    }
+
+    .app {
+      max-width: 480px;
+      margin: 0 auto;
+      padding-bottom: 100px;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: #fff;
+      padding: 24px 20px 16px;
+      border-bottom: 1px solid #F0EFE8;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+    .logo-badge {
+      background: #FFD600;
+      border-radius: 10px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 800;
+      color: #1a1a1a;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a1a1a;
+      letter-spacing: -0.5px;
+    }
+    .count-badge {
+      background: #F2F1EC;
+      border-radius: 8px;
+      padding: 2px 8px;
+      font-size: 12px;
+      color: #888;
+      font-weight: 600;
+      margin-left: 2px;
+    }
+    .header-sub {
+      font-size: 13px;
+      color: #999;
+      margin-left: 42px;
+    }
+
+    /* ── Search ── */
+    .search-bar {
+      margin: 14px 20px 0;
+      position: relative;
+    }
+    .search-bar input {
+      width: 100%;
+      padding: 11px 16px 11px 40px;
+      border-radius: 12px;
+      border: none;
+      background: #F2F1EC;
+      font-size: 14px;
+      color: #1a1a1a;
+      outline: none;
+      font-family: inherit;
+    }
+    .search-bar input::placeholder { color: #bbb; }
+    .search-icon {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 15px;
+    }
+
+    /* ── Section title ── */
+    .section-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: #aaa;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 20px 20px 8px;
+    }
+
+    /* ── Menu list ── */
+    .menu-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 0 16px;
+    }
+    .menu-card {
+      background: #fff;
+      border-radius: 16px;
+      padding: 16px 18px;
+      cursor: pointer;
+      border: 1.5px solid transparent;
+      transition: border-color 0.15s, background 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .menu-card:hover { border-color: #FFD600; background: #FFFEF5; }
+    .menu-card-left { display: flex; align-items: center; gap: 14px; }
+    .menu-emoji {
+      font-size: 24px;
+      width: 44px;
+      height: 44px;
+      background: #FFF9E0;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .menu-name { font-size: 15px; font-weight: 600; color: #1a1a1a; letter-spacing: -0.3px; }
+    .menu-tag { font-size: 12px; color: #bbb; margin-top: 2px; }
+    .arrow { font-size: 18px; color: #ddd; }
+
+    /* ── FAB ── */
+    .fab {
+      position: fixed;
+      bottom: 28px;
+      right: max(calc(50vw - 240px + 16px), 20px);
+      width: 52px;
+      height: 52px;
+      background: #FFD600;
+      border-radius: 16px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      font-weight: 300;
+      color: #1a1a1a;
+      box-shadow: 0 4px 20px rgba(255, 214, 0, 0.45);
+      transition: transform 0.15s;
+      z-index: 20;
+    }
+    .fab:hover { transform: scale(1.07); }
+
+    /* ── Slide panel (detail & add) ── */
+    .panel {
+      position: fixed;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 480px;
+      height: 100%;
+      background: #fff;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      animation: slideUp 0.22s ease;
+    }
+    @keyframes slideUp {
+      from { transform: translateX(-50%) translateY(24px); opacity: 0; }
+      to   { transform: translateX(-50%) translateY(0);   opacity: 1; }
+    }
+    .panel-header {
+      padding: 20px 20px 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border-bottom: 1px solid #F0EFE8;
+      flex-shrink: 0;
+    }
+    .back-btn {
+      width: 36px;
+      height: 36px;
+      background: #F2F1EC;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      color: #555;
+      flex-shrink: 0;
+    }
+    .panel-title { font-size: 17px; font-weight: 700; color: #1a1a1a; letter-spacing: -0.4px; }
+    .panel-body { flex: 1; overflow-y: auto; padding: 24px 20px; }
+
+    /* ── Detail view ── */
+    .detail-emoji-big { font-size: 48px; display: block; margin-bottom: 14px; }
+    .detail-name-big {
+      font-size: 26px;
+      font-weight: 800;
+      color: #1a1a1a;
+      letter-spacing: -0.8px;
+      margin-bottom: 8px;
+    }
+    .detail-tag-chip {
+      display: inline-block;
+      background: #FFF3CC;
+      color: #9A6F00;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 8px;
+      margin-bottom: 24px;
+    }
+    .recipe-box {
+      background: #F7F7F5;
+      border-radius: 16px;
+      padding: 20px;
+    }
+    .recipe-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #aaa;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .recipe-text {
+      font-size: 15px;
+      line-height: 1.85;
+      color: #333;
+      white-space: pre-wrap;
+    }
+    .delete-btn {
+      margin-top: 20px;
+      width: 100%;
+      padding: 14px;
+      background: #FFF0F0;
+      color: #E24B4A;
+      border: none;
+      border-radius: 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    .delete-btn:hover { background: #FFE5E5; }
+
+    /* ── Add view ── */
+    .add-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    .field-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #888;
+      margin-bottom: 8px;
+    }
+    .field-input {
+      width: 100%;
+      padding: 13px 16px;
+      background: #F7F7F5;
+      border: 1.5px solid transparent;
+      border-radius: 14px;
+      font-size: 15px;
+      color: #1a1a1a;
+      outline: none;
+      transition: border-color 0.15s, background 0.15s;
+      font-family: inherit;
+    }
+    .field-input:focus { border-color: #FFD600; background: #FFFEF5; }
+    .field-textarea {
+      width: 100%;
+      padding: 13px 16px;
+      background: #F7F7F5;
+      border: 1.5px solid transparent;
+      border-radius: 14px;
+      font-size: 14px;
+      color: #1a1a1a;
+      outline: none;
+      resize: none;
+      min-height: 180px;
+      line-height: 1.75;
+      transition: border-color 0.15s, background 0.15s;
+      font-family: inherit;
+    }
+    .field-textarea:focus { border-color: #FFD600; background: #FFFEF5; }
+    .emoji-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 8px;
+    }
+    .emoji-btn {
+      height: 42px;
+      background: #F7F7F5;
+      border: 1.5px solid transparent;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 20px;
+      transition: all 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .emoji-btn.selected { background: #FFF9E0; border-color: #FFD600; }
+    .panel-footer { padding: 12px 20px 32px; flex-shrink: 0; }
+    .save-btn {
+      width: 100%;
+      padding: 16px;
+      background: #FFD600;
+      border: none;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a1a1a;
+      cursor: pointer;
+      letter-spacing: -0.3px;
+      font-family: inherit;
+      transition: opacity 0.15s;
+    }
+    .save-btn:disabled { background: #E8E8E0; color: #bbb; cursor: not-allowed; }
+    .save-btn:not(:disabled):hover { opacity: 0.85; }
+
+    /* ── Empty state ── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      text-align: center;
+    }
+    .empty-emoji { font-size: 40px; margin-bottom: 12px; }
+    .empty-title { font-size: 16px; font-weight: 600; color: #bbb; }
+    .empty-sub { font-size: 13px; color: #ccc; margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+<div class="app">
+  <div class="header">
+    <div class="header-top">
+      <div class="logo-badge">M</div>
+      <h1>레시피북</h1>
+      <span class="count-badge" id="count-badge">0개</span>
+    </div>
+    <p class="header-sub">동생을 위한 메가커피 레시피</p>
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" placeholder="메뉴 검색..." oninput="renderList()" />
+    </div>
+  </div>
+
+  <div class="section-title">전체 메뉴</div>
+  <div class="menu-list" id="menu-list"></div>
+</div>
+
+<button class="fab" onclick="openAdd()">+</button>
+
+<!-- 상세 패널 -->
+<div class="panel" id="detail-panel" style="display:none;">
+  <div class="panel-header">
+    <button class="back-btn" onclick="closeDetail()">←</button>
+    <span class="panel-title">레시피</span>
+  </div>
+  <div class="panel-body" id="detail-body"></div>
+</div>
+
+<!-- 추가 패널 -->
+<div class="panel" id="add-panel" style="display:none;">
+  <div class="panel-header">
+    <button class="back-btn" onclick="closeAdd()">←</button>
+    <span class="panel-title">메뉴 추가</span>
+    <div style="width:36px"></div>
+  </div>
+  <div class="add-body">
+    <div>
+      <div class="field-label">이모지 선택</div>
+      <div class="emoji-grid" id="emoji-grid"></div>
+    </div>
+    <div>
+      <div class="field-label">메뉴 이름 *</div>
+      <input class="field-input" id="new-name" type="text" placeholder="예: 아이스 아메리카노" maxlength="30" />
+    </div>
+    <div>
+      <div class="field-label">카테고리 (선택)</div>
+      <input class="field-input" id="new-tag" type="text" placeholder="예: 커피, 에이드, 스무디" maxlength="20" />
+    </div>
+    <div>
+      <div class="field-label">레시피 & 메모</div>
+      <textarea class="field-textarea" id="new-recipe" placeholder="재료 비율, 만드는 순서, 주의사항 등 자유롭게!"></textarea>
+    </div>
+  </div>
+  <div class="panel-footer">
+    <button class="save-btn" onclick="saveMenu()">저장하기</button>
+  </div>
+</div>
+
+<script>
+  const EMOJIS = ['☕','🧋','🍵','🥤','🍹','🧃','🫖','🍫','🥛','🍰','🧁','🍩','🫙','🍦','🌿','🫐','🍓','🍋','🍊','🥭','🍑','❄️','🔥','💛','⭐','🌸'];
+  const STORAGE_KEY = 'mega_recipes_v1';
+
+  /* 기본 샘플 메뉴 — 처음 실행 시에만 표시 */
+  const DEFAULT_MENUS = [
+    {
+      id: 1,
+      emoji: '☕',
+      name: '아이스 아메리카노',
+      tag: '커피',
+      recipe: '에스프레소 2샷\n얼음 컵 가득\n물 적당량\n\n💡 얼음 먼저 → 에스프레소 → 물 순서로!'
+    },
+    {
+      id: 2,
+      emoji: '🧋',
+      name: '흑당 버블 밀크티',
+      tag: '밀크티',
+      recipe: '흑당 시럽 3펌프\n우유 + 얼음\n타피오카 펄 한 스쿱\n\n💡 펄은 미리 삶아두기. 흑당 바닥 → 얼음 → 우유 순서!'
+    },
+    {
+      id: 3,
+      emoji: '🥤',
+      name: '딸기 라떼',
+      tag: '라떼',
+      recipe: '딸기 베이스 2펌프\n우유 300ml\n얼음\n\n💡 베이스 → 얼음 → 우유 순서. 섞지 말고 그라데이션 예쁘게!'
+    },
+  ];
+
+  let menus = [];
+  let selectedEmoji = '☕';
+
+  /* ── 로드 / 저장 ── */
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      menus = raw ? JSON.parse(raw) : DEFAULT_MENUS;
+    } catch {
+      menus = DEFAULT_MENUS;
+    }
+    renderList();
+  }
+
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(menus));
+  }
+
+  /* ── 메뉴 목록 렌더 ── */
+  function renderList() {
+    const q = document.getElementById('search-input').value.trim().toLowerCase();
+    const filtered = q
+      ? menus.filter(m => m.name.toLowerCase().includes(q) || (m.tag || '').toLowerCase().includes(q))
+      : menus;
+
+    document.getElementById('count-badge').textContent = menus.length + '개';
+    const list = document.getElementById('menu-list');
+
+    if (filtered.length === 0) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-emoji">${q ? '🔍' : '☕'}</div>
+          <div class="empty-title">${q ? '검색 결과가 없어요' : '메뉴가 없어요'}</div>
+          <div class="empty-sub">${q ? '다른 이름으로 검색해봐요' : '+ 버튼으로 첫 메뉴를 추가해봐요!'}</div>
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map(m => `
+      <div class="menu-card" onclick="openDetail(${m.id})">
+        <div class="menu-card-left">
+          <div class="menu-emoji">${m.emoji}</div>
+          <div>
+            <div class="menu-name">${escHtml(m.name)}</div>
+            <div class="menu-tag">${escHtml(m.tag || '기타')}</div>
+          </div>
+        </div>
+        <span class="arrow">›</span>
+      </div>`).join('');
+  }
+
+  /* ── 상세 패널 ── */
+  function openDetail(id) {
+    const m = menus.find(x => x.id === id);
+    if (!m) return;
+    document.getElementById('detail-body').innerHTML = `
+      <span class="detail-emoji-big">${m.emoji}</span>
+      <div class="detail-name-big">${escHtml(m.name)}</div>
+      <span class="detail-tag-chip">${escHtml(m.tag || '기타')}</span>
+      <div class="recipe-box">
+        <div class="recipe-label">레시피</div>
+        <div class="recipe-text">${escHtml(m.recipe || '레시피가 없어요.')}</div>
+      </div>
+      <button class="delete-btn" onclick="deleteMenu(${id})">이 메뉴 삭제</button>`;
+    document.getElementById('detail-panel').style.display = 'flex';
+  }
+
+  function closeDetail() {
+    document.getElementById('detail-panel').style.display = 'none';
+  }
+
+  function deleteMenu(id) {
+    if (!confirm('이 메뉴를 삭제할까요?')) return;
+    menus = menus.filter(m => m.id !== id);
+    save();
+    closeDetail();
+    renderList();
+  }
+
+  /* ── 추가 패널 ── */
+  function openAdd() {
+    document.getElementById('new-name').value = '';
+    document.getElementById('new-tag').value = '';
+    document.getElementById('new-recipe').value = '';
+    selectedEmoji = '☕';
+    renderEmojiGrid();
+    document.getElementById('add-panel').style.display = 'flex';
+  }
+
+  function closeAdd() {
+    document.getElementById('add-panel').style.display = 'none';
+  }
+
+  function renderEmojiGrid() {
+    document.getElementById('emoji-grid').innerHTML = EMOJIS.map(e =>
+      `<button class="emoji-btn ${e === selectedEmoji ? 'selected' : ''}" onclick="selectEmoji('${e}')">${e}</button>`
+    ).join('');
+  }
+
+  function selectEmoji(e) {
+    selectedEmoji = e;
+    renderEmojiGrid();
+  }
+
+  function saveMenu() {
+    const name = document.getElementById('new-name').value.trim();
+    if (!name) {
+      document.getElementById('new-name').focus();
+      return;
+    }
+    menus.unshift({
+      id: Date.now(),
+      emoji: selectedEmoji,
+      name,
+      tag: document.getElementById('new-tag').value.trim(),
+      recipe: document.getElementById('new-recipe').value.trim(),
+    });
+    save();
+    closeAdd();
+    renderList();
+  }
+
+  /* ── 유틸 ── */
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  load();
+</script>
+</body>
+</html>
